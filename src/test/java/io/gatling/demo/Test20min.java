@@ -110,7 +110,7 @@ public class Test20min extends Simulation {
 
     private ScenarioBuilder scnTransfer = scenario("UC1_Transfer")
             .forever().on(
-                    pace(42)
+                    pace(20)
                             .exec(DataPrepare)
                             .pause(2)
                             .exec(login)
@@ -124,7 +124,8 @@ public class Test20min extends Simulation {
 
     private ScenarioBuilder scnLoginLogout = scenario("UC2_LoginLogout")
             .forever().on(
-                    pace(52)
+                    pace(20)
+                            .exec(DataPrepare)
                             .pause(2)
                             .exec(login)
                             .pause(2)
@@ -133,7 +134,8 @@ public class Test20min extends Simulation {
 
     private ScenarioBuilder scnRegistration = scenario("UC3_Registration")
             .forever().on(
-                    pace(38)
+                    pace(20)
+                            .exec(DataPrepare)
                             .pause(2)
                             .exec(register)
             );
