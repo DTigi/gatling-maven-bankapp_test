@@ -1,17 +1,17 @@
 package io.gatling.demo;
 
-import java.time.Duration;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 
 import io.gatling.javaapi.core.*;
 import io.gatling.javaapi.http.*;
-import io.gatling.javaapi.jdbc.*;
 
 import static io.gatling.javaapi.core.CoreDsl.*;
 import static io.gatling.javaapi.http.HttpDsl.*;
-import static io.gatling.javaapi.jdbc.JdbcDsl.*;
 
-public class RecordedSimulation extends Simulation {
+public class BankAppSimulation extends Simulation {
 
   private HttpProtocolBuilder httpProtocol = http
     .baseUrl("http://localhost:8080")
@@ -37,6 +37,24 @@ public class RecordedSimulation extends Simulation {
     .feed(userDataFeeder)
     .feed(senderDataFeeder)
 
+    // генерируем необходимые параметры
+    .exec(session -> {
+      // случайные параметры
+      String reg_fullName = "User" + UUID.randomUUID().toString().substring(0, 8);
+      String reg_phone = String.format("%09d", ThreadLocalRandom.current().nextInt(100000000, 999999999));
+      String reg_username = "user" + ThreadLocalRandom.current().nextInt(1000, 9999);
+      String reg_password = "pass" + ThreadLocalRandom.current().nextInt(1000, 9999);
+      Integer amount = ThreadLocalRandom.current().nextInt(1, 500);
+
+      // Записываем в сессию
+      return session
+              .set("reg_fullName", reg_fullName)
+              .set("reg_phone", reg_phone)
+              .set("reg_username", reg_username)
+              .set("reg_password", reg_password)
+              .set("amount", amount);
+                        })
+
     .exec(
       pause(2),
       // say_hello,
@@ -45,6 +63,14 @@ public class RecordedSimulation extends Simulation {
         .headers(headers_9)
         .check(substring("Привет, #{username}!"))
         .check(bodyString().saveAs("hello_responseBody")),
+
+      pause(2),
+      // register,
+      http("register")
+        .post("/auth/register?fullName=#{reg_fullName}&phone=#{reg_phone}&username=#{reg_username}&password=#{reg_password}")
+        .headers(headers_20)
+        .check(substring("#{reg_password}"))
+        .check(bodyString().saveAs("register_responseBody")),
 
       pause(2),
       // login,
@@ -67,10 +93,10 @@ public class RecordedSimulation extends Simulation {
       pause(2),
       // transfer,
       http("transfer")
-        .post("/transactions/transfer?amount=#{sender_balance}")
+        .post("/transactions/transfer?amount=#{amount}")
         .headers(headers_20)
         .check(bodyString().saveAs("transfer_responseBody"))
-        .check(regex("✅ Перевод завершен! #{sender_balance}₽ переведено на счет #{recipient_account_number}")),
+        .check(regex("✅ Перевод завершен! #{amount}.+?₽ переведено на счет #{recipient_account_number}")),
 
       pause(2),
       // logout,
@@ -84,6 +110,7 @@ public class RecordedSimulation extends Simulation {
     // Логи
     .exec(session -> {
     System.out.println("hello_responseBody:" + session.getString("hello_responseBody")+ "\n" +
+            "register_responseBody:" + session.getString("register_responseBody")+ "\n" +
             "login_responseBody:" + session.getString("login_responseBody")+ "\n" +
             "recipient_responseBody:" + session.getString("recipient_responseBody")+ "\n" +
             "Selected recipient account: " + session.getString("recipient_account_number") + "\n" +
