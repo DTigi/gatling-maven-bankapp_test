@@ -65,17 +65,17 @@ public class RecordedSimulation extends Simulation {
         .post("/transactions/select-recipient?username=#{username}&accountNumber=#{AccountNumber}")
         .headers(headers_20)
         .check(substring("✅ Получатель выбран: #{fullName} (Счет: #{AccountNumber})"))
+        .check(bodyString().saveAs("recipient_responseBody"))
         .check(regex("Баланс отправителя: (.*)").saveAs("sender_balance"))
-        .check(regex("Счет: ([^)]*)").saveAs("recipient_account_number"))
-        .check(bodyString().saveAs("recipient_responseBody")),
+        .check(regex("Счет: ([^)]*)").saveAs("recipient_account_number")),
 
       pause(2),
       // transfer,
       http("transfer")
         .post("/transactions/transfer?amount=#{sender_balance}")
         .headers(headers_20)
-        .check(regex("✅ Перевод завершен! #{sender_balance}₽ переведено на счет #{recipient_account_number}"))
-        .check(bodyString().saveAs("transfer_responseBody")),
+        .check(bodyString().saveAs("transfer_responseBody"))
+        .check(regex("✅ Перевод завершен! #{sender_balance}₽ переведено на счет #{recipient_account_number}")),
 
       pause(2),
       // logout,
@@ -91,6 +91,7 @@ public class RecordedSimulation extends Simulation {
     System.out.println("hello_responseBody:" + session.getString("hello_responseBody")+ "\n" +
             "login_responseBody:" + session.getString("login_responseBody")+ "\n" +
             "recipient_responseBody:" + session.getString("recipient_responseBody")+ "\n" +
+            "Selected recipient account: " + session.getString("recipient_account_number") + "\n" +
             "transfer_responseBody:" + session.getString("transfer_responseBody")+ "\n" +
             "logout_responseBody:" + session.getString("logout_responseBody")) ;
     return session;
