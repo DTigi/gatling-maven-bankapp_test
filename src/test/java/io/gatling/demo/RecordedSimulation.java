@@ -24,23 +24,18 @@ public class RecordedSimulation extends Simulation {
   
   private Map<CharSequence, String> headers_9 = Map.of("Priority", "u=0");
   
-  private Map<CharSequence, String> headers_19 = Map.ofEntries(
-    Map.entry("Origin", "http://localhost:8081"),
-    Map.entry("Priority", "u=0")
-  );
-  
   private Map<CharSequence, String> headers_20 = Map.ofEntries(
     Map.entry("Origin", "http://localhost:8080"),
     Map.entry("Priority", "u=0")
   );
-  
-  private String uri1 = "localhost";
 
   // кормушки
-  private static final FeederBuilder <String> userDataFeeder = csv("/home/dtigi/projects/t1/standartmock/test_accounts.csv").circular();
+  private static final FeederBuilder <String> userDataFeeder = csv("/home/dtigi/projects/BankApp/test_accounts.csv").circular();
+  private static final FeederBuilder <String> senderDataFeeder = csv("fake_users.csv").circular();
 
   private ScenarioBuilder scn = scenario("RecordedSimulation")
     .feed(userDataFeeder)
+    .feed(senderDataFeeder)
 
     .exec(
       pause(2),
@@ -54,9 +49,9 @@ public class RecordedSimulation extends Simulation {
       pause(2),
       // login,
       http("login")
-        .post("http://" + uri1 + ":8081/auth/login?username=#{username}&password=#{password}")
-        .headers(headers_19)
-        .check(substring("✅ Успешный вход: #{username}"))
+        .post("/auth/login?username=#{sender_username}&password=#{sender_password}")
+        .headers(headers_20)
+        .check(substring("✅ Успешный вход: #{sender_username}"))
         .check(bodyString().saveAs("login_responseBody")),
 
       pause(2),
@@ -79,9 +74,9 @@ public class RecordedSimulation extends Simulation {
 
       pause(2),
       // logout,
-      http("request_22")
-        .post("http://" + uri1 + ":8081/auth/logout")
-        .headers(headers_19)
+      http("logout")
+        .post("/auth/logout")
+        .headers(headers_20)
         .check(substring("✅ Успешный выход"))
         .check(bodyString().saveAs("logout_responseBody"))
     )
@@ -98,6 +93,6 @@ public class RecordedSimulation extends Simulation {
     });
 
   {
-	  setUp(scn.injectOpen(atOnceUsers(3))).protocols(httpProtocol);
+	  setUp(scn.injectOpen(atOnceUsers(20))).protocols(httpProtocol);
   }
 }
