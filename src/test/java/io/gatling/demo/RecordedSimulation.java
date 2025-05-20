@@ -59,7 +59,7 @@ public class RecordedSimulation extends Simulation {
   
   private String uri1 = "localhost";
   // кормушки
-  private static final FeederBuilder <String> userDataFeeder = csv("fake_users.csv").circular();
+  private static final FeederBuilder <String> userDataFeeder = csv("/Users/elenatiginanu/dtigi/JavaProjects/standartmock/test_accounts.csv").circular();
 
   private ScenarioBuilder scn = scenario("RecordedSimulation")
     .feed(userDataFeeder)
