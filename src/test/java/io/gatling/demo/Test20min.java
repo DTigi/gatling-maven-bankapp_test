@@ -46,7 +46,7 @@ public class Test20min extends Simulation {
       String reg_phone = String.format("%09d", ThreadLocalRandom.current().nextInt(100000000, 999999999));
       String reg_username = "user" + ThreadLocalRandom.current().nextInt(1000, 9999);
       String reg_password = "pass" + ThreadLocalRandom.current().nextInt(1000, 9999);
-      Integer amount = ThreadLocalRandom.current().nextInt(1, 500);
+      Integer amount = ThreadLocalRandom.current().nextInt(1, 50);
 
       // Записываем в сессию
       return session
